@@ -594,9 +594,33 @@
    *     </invenio-records-form>
    *
    */
-  function invenioRecordsForm() {
+  function invenioRecordsForm($http) {
 
     // Functions
+
+    /**
+     * Initialize directive
+     * @memberof invenioRecords
+     * @param {service} scope -  The scope of this element.
+     * @param {service} element - Element that this direcive is assigned to.
+     * @param {service} attrs - Attribute of this element.
+     * @param {invenioRecordsController} vm - Invenio records controller.
+     */
+    function link(scope, element, attrs, vm) {
+      scope.suggestLicense = function (text) {
+        return $http.get('/api/licenses').then(function (response) {
+          return {
+            data: response.data.hits.hits.map(function (option) {
+              var suggest = option.metadata.suggest;
+              return {
+                name: suggest.output,
+                value: suggest.payload
+              };
+            })
+          };
+        });
+      }
+    }
 
     /**
      * Choose template for record form
@@ -619,11 +643,15 @@
 
     return {
       restrict: 'AE',
+      link: link,
       scope: false,
       require: '^invenioRecords',
       templateUrl: templateUrl,
     };
   }
+
+  invenioRecordsForm.$inject = ['$http'];
+
 
   ///////////////
 
@@ -635,18 +663,29 @@
 
   // Controllers
   angular.module('invenioRecords.controllers', [])
-    .controller('invenioRecordsController', invenioRecordsController);
+    .controller('invenioRecordsController', invenioRecordsController) ;
 
   // Services
   angular.module('invenioRecords.services', [])
     .service('invenioRecordsAPI', invenioRecordsAPI);
 
   // Directives
-  angular.module('invenioRecords.directives', [])
+  angular.module('invenioRecords.directives', ['schemaForm'])
     .directive('invenioRecords', invenioRecords)
     .directive('invenioRecordsError', invenioRecordsError)
     .directive('invenioRecordsActions', invenioRecordsActions)
-    .directive('invenioRecordsForm', invenioRecordsForm);
+    .directive('invenioRecordsForm', invenioRecordsForm).config(['schemaFormDecoratorsProvider', 'sfBuilderProvider', 'sfPathProvider',
+    function (decoratorsProvider, sfBuilderProvider, sfPathProvider) {
+      console.log('config');
+      decoratorsProvider.addMapping('bootstrapDecorator', 'default', '/static/node_modules/invenio-records-js/dist/templates/default.html');
+      decoratorsProvider.addMapping('bootstrapDecorator', 'fieldset', '/static/node_modules/invenio-records-js/dist/templates/fieldset.html');
+      decoratorsProvider.addMapping('bootstrapDecorator', 'array', '/static/node_modules/invenio-records-js/dist/templates/array.html');
+      decoratorsProvider.addMapping('bootstrapDecorator', 'radios-inline', '/static/node_modules/invenio-records-js/dist/templates/radios_inline.html');
+      decoratorsProvider.addMapping('bootstrapDecorator', 'radios', '/static/node_modules/invenio-records-js/dist/templates/radios.html');
+      decoratorsProvider.addMapping('bootstrapDecorator', 'select', '/static/node_modules/invenio-records-js/dist/templates/select.html');
+      decoratorsProvider.addMapping('bootstrapDecorator', 'button', '/static/node_modules/invenio-records-js/dist/templates/button.html');
+      decoratorsProvider.addMapping('bootstrapDecorator', 'textarea', '/static/node_modules/invenio-records-js/dist/templates/textarea.html');
+    }]);
 
   // Setup everyhting
   angular.module('invenioRecords' , [
