@@ -120,7 +120,7 @@ function InvenioRecordsAPI($http, $q) {
       url: url,
       method: method,
       headers: extraParams.headers || {},
-      data: getData(model, extraParams, endpoints)
+      data: this.getData(model, extraParams, endpoints)
     };
     return requestObject;
   }

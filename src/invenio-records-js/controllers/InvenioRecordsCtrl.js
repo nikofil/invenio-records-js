@@ -35,6 +35,7 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
 
   // Assign the controller to `vm`
   var vm = this;
+  var once = true;
 
   // The request args
   vm.invenioRecordsArgs = {
@@ -94,6 +95,7 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
     // Assign the model
     vm.invenioRecordsModel = angular.copy(record);
     // Assign endpoints
+    if (!vm.invenioRecordsEndpoints)
     vm.invenioRecordsEndpoints = angular.merge(
       {},
       endpoints
@@ -106,7 +108,7 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
       args
     );
 
-    if (Object.keys(links).length > 0) {
+    if (!vm.invenioRecordsEndpoints && Object.keys(links).length > 0) {
       $rootScope.$broadcast(
         'invenio.records.endpoints.updated', links
       );
@@ -235,7 +237,10 @@ function InvenioRecordsCtrl($scope, $rootScope, $q, $window, $location,
       $rootScope.$broadcast('invenio.records.loading.stop');
 
       // Redirect if defined
-      handleActionRedirection(redirect_path || undefined);
+      if (once) {
+          once = false;
+          handleActionRedirection(redirect_path || undefined);
+      }
     }
     /**
       * After an errored request
